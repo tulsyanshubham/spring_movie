@@ -28,6 +28,16 @@ public class Users {
     public Users() {
     }
 
+    @Override
+    public String toString() {
+        return "Users{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", role=" + role +
+                '}';
+    }
+
     public int getId() {
         return id;
     }

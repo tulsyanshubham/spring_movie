@@ -34,4 +34,10 @@ public class UserController {
     public Optional<Users> getUserByUsername(@PathVariable("username") String username) {
         return users.getUserByUsername(username);
     }
+
+    @PostMapping("/login")
+    public String login(@RequestBody Users user){
+        System.out.println(user);
+        return users.verify(user);
+    }
 }

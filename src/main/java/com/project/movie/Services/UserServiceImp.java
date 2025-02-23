@@ -5,6 +5,10 @@ import com.project.movie.Entity.UserPrincipal;
 import com.project.movie.Entity.Users;
 import com.project.movie.Repository.UserRepository;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +20,12 @@ import java.util.Optional;
 @Service
 public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
+
+    @Autowired
+    AuthenticationManager authManager;
+
+    @Autowired
+    JWTService jwtService;
 
     public UserServiceImp(UserRepository userRepository){
         this.userRepository=userRepository;
@@ -35,16 +45,18 @@ public class UserServiceImp implements UserService {
         return userRepository.findUsersByUsername(username);
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Users> user = userRepository.findUsersByUsername(username);
 
-        if (user.isEmpty()) {
-            System.out.printf("User not found");
-            throw new UsernameNotFoundException("User not found: " + username);
+    public String verify(Users user) {
+        Authentication authentication =
+                authManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                user.getUsername(),user.getPassword()
+                        )
+                );
+
+        if(authentication.isAuthenticated()){
+            return jwtService.generateToken(user.getUsername());
         }
-
-        return new UserPrincipal(user.get());
+        return "Failed";
     }
-
 }
