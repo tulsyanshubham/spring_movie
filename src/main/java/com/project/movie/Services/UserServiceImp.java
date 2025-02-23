@@ -1,10 +1,13 @@
 package com.project.movie.Services;
 
+import com.project.movie.Entity.Role;
 import com.project.movie.Entity.UserPrincipal;
 import com.project.movie.Entity.Users;
 import com.project.movie.Repository.UserRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +25,9 @@ public class UserServiceImp implements UserService {
         return userRepository.findAll();
     }
 
-    public void saveUser(Users users){
+    public void saveUser(@NotNull Users users){
+        users.setPassword(new BCryptPasswordEncoder(12).encode(users.getPassword()));
+        users.setRole(Role.valueOf(users.getRole().name()));
         userRepository.save(users);
     }
 
@@ -33,11 +38,13 @@ public class UserServiceImp implements UserService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<Users> user = userRepository.findUsersByUsername(username);
-        System.out.println(userRepository.findAll());
-        if(!user.isPresent()){
-            System.out.println("user no found");
-            throw new UsernameNotFoundException("User not found");
+
+        if (user.isEmpty()) {
+            System.out.printf("User not found");
+            throw new UsernameNotFoundException("User not found: " + username);
         }
+
         return new UserPrincipal(user.get());
     }
+
 }
